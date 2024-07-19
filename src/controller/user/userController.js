@@ -1,5 +1,5 @@
 const User = require("../../Database/userSchema");
-const Task = require("../../Database/taskSchema");
+
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -17,6 +17,7 @@ const signup = async (req, res) => {
     try {
 
         const { name, email, image, password, google } = req.body;
+        console.log(req.body)
         if (google === true) {
             if (email) {
                 const user = await User.findOne({ email });
@@ -126,10 +127,12 @@ const signup = async (req, res) => {
                                 name: name,
                                 email: email,
                                 image: image,
-                                google: true,
+                                google: false,
                                 status: true,
                                 password: hashPassword
                             });
+
+                            await newUser.save();
 
                             const users = await User.findOne({ email });
                             const token = await createToken(users._id);
@@ -179,141 +182,135 @@ const signup = async (req, res) => {
 }
 
 const login = async (req, res) => {
-  const { email, password, google } = req.body;
-  if (req.body) {
-    if (google) {
-      const users = await User.findOne({ email });
-      if (users) {
-        if (!users.status) {
-          const emailError = {
-            status: false,
-            errors: [
-              {
-                param: "Blocked",
-                message: "Your Account is blocked",
-                code: "USER_BLOCKED",
-              },
-            ],
-          };
-          res.status(409).send({ data: emailError });
-        } else {
-          const token = await createToken(users._id);
-          const courseData = await Course.find({
-            User: users._id,
-          });
-          const success = {
-            status: true,
-            content: {
-              data: users,
+    const { email, password, google } = req.body;
+    if (req.body) {
+        if (google) {
+            const users = await User.findOne({ email });
+            if (users) {
+                if (!users.status) {
+                    const emailError = {
+                        status: false,
+                        errors: [
+                            {
+                                param: "Blocked",
+                                message: "Your Account is blocked",
+                                code: "USER_BLOCKED",
+                            },
+                        ],
+                    };
+                    res.status(409).send({ data: emailError });
+                } else {
+                    const token = await createToken(users._id);
 
-              courses: courseData,
-              meta: {
-                access_token: token,
-              },
-            },
-          };
-          res.status(200).send({ data: success });
+                    const success = {
+                        status: true,
+                        content: {
+                            data: users,
+                            meta: {
+                                access_token: token,
+                            },
+                        },
+                    };
+                    res.status(200).send({ data: success });
+                }
+            } else {
+                const emailError = {
+                    status: false,
+                    errors: [
+                        {
+                            param: "email",
+                            message: "no user found",
+                            code: "INVALID_INPUT",
+                        },
+                    ],
+                };
+                res.status(409).send({ data: emailError });
+            }
+        } else {
+            const users = await User.findOne({ email });
+            if (users) {
+                if (users.google === true) {
+                    const emailError = {
+                        status: false,
+                        errors: [
+                            {
+                                param: "email",
+                                message: "Please login using google Account",
+                                code: "INVALID_INPUT",
+                            },
+                        ],
+                    };
+                    res.status(409).send({ data: emailError });
+                } else {
+                    const match = await bcrypt.compare(password, users.password);
+                    if (match) {
+                        if (!users.status) {
+                            const emailError = {
+                                status: false,
+                                errors: [
+                                    {
+                                        param: "Blocked",
+                                        message: "Your Account is blocked",
+                                        code: "USER_BLOCKED",
+                                    },
+                                ],
+                            };
+                            res.status(409).send({ data: emailError });
+                        } else {
+                            const token = await createToken(users._id);
+
+                            const success = {
+                                status: true,
+                                content: {
+                                    data: users,
+                                    meta: {
+                                        access_token: token,
+                                    },
+                                },
+                            };
+                            res.status(200).send({ data: success });
+                        }
+                    } else {
+                        const emailError = {
+                            status: false,
+                            errors: [
+                                {
+                                    param: "password",
+                                    message: "incorrect password",
+                                    code: "INVALID_INPUT",
+                                },
+                            ],
+                        };
+                        res.status(409).send({ data: emailError });
+                    }
+                }
+            } else {
+                const emailError = {
+                    status: false,
+                    errors: [
+                        {
+                            param: "email",
+                            message: "no user found",
+                            code: "INVALID_INPUT",
+                        },
+                    ],
+                };
+                res.status(409).send({ data: emailError });
+            }
         }
-      } else {
-        const emailError = {
-          status: false,
-          errors: [
-            {
-              param: "email",
-              message: "no user found",
-              code: "INVALID_INPUT",
-            },
-          ],
-        };
-        res.status(409).send({ data: emailError });
-      }
     } else {
-      const users = await User.findOne({ email });
-      if (users) {
-        if (users.google === true) {
-          const emailError = {
+        const emailError = {
             status: false,
             errors: [
-              {
-                param: "email",
-                message: "Please login using google Account",
-                code: "INVALID_INPUT",
-              },
-            ],
-          };
-          res.status(409).send({ data: emailError });
-        } else {
-          const match = await bcrypt.compare(password, users.password);
-          if (match) {
-            if (!users.status) {
-              const emailError = {
-                status: false,
-                errors: [
-                  {
-                    param: "Blocked",
-                    message: "Your Account is blocked",
-                    code: "USER_BLOCKED",
-                  },
-                ],
-              };
-              res.status(409).send({ data: emailError });
-            } else {
-              const token = await createToken(users._id);
-              const courseData = await Course.find({
-                User: users._id,
-              });
-              const success = {
-                status: true,
-                content: {
-                  data: users,
-                  meta: {
-                    access_token: token,
-                  },
-                },
-              };
-              res.status(200).send({ data: success });
-            }
-          } else {
-            const emailError = {
-              status: false,
-              errors: [
                 {
-                  param: "password",
-                  message: "incorrect password",
-                  code: "INVALID_INPUT",
+                    param: "email",
+                    message: "No inputs received",
+                    code: "INVALID_INPUT",
                 },
-              ],
-            };
-            res.status(409).send({ data: emailError });
-          }
-        }
-      } else {
-        const emailError = {
-          status: false,
-          errors: [
-            {
-              param: "email",
-              message: "no user found",
-              code: "INVALID_INPUT",
-            },
-          ],
+            ],
         };
         res.status(409).send({ data: emailError });
-      }
     }
-  } else {
-    const emailError = {
-      status: false,
-      errors: [
-        {
-          param: "email",
-          message: "No inputs received",
-          code: "INVALID_INPUT",
-        },
-      ],
-    };
-    res.status(409).send({ data: emailError });
-  }
 };
 
 
@@ -387,80 +384,6 @@ const changePassword = async (req, res) => {
 
 }
 
-const createPost = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { title, taskData } = req.body;
-        newTask = new Task({
-            userId: id,
-            title,
-            taskData
-        })
-        await newTask.save();
-        res.status(200).json({ load: newTask });
-    } catch (err) {
-        console.error("Error:", err);
-        return res.status(500).json({ message: "Server error" });
-    }
-}
-
-const editPost = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { title, taskData } = req.body;
-        const { taskId } = req.query;
-        await Task.findByIdAndUpdate(taskId, {
-            title,
-            taskData
-        })
-
-        const load = await Task.findOne({ _id: TaskId });
-
-        res.status(200).json({ load });
-    } catch (err) {
-        console.error("Error:", err);
-        return res.status(500).json({ message: "Server error" });
-    }
-}
-
-const deletePost = async (req, res) => {
-    try {
-
-        const { taskId } = req.query;
-        await Task.findByIdAndDelete(taskId);
-
-        res.status(200).json({ load: "post deleted" });
-    } catch (err) {
-        console.error("Error:", err);
-        return res.status(500).json({ message: "Server error" });
-    }
-}
-
-const fetchMypost = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const allPost = await Task.find({ userId: id }).populate("userId").sort({ createdAt: 'desc' });
-
-        res.status(200).json({ load: allPost });
-    } catch (err) {
-        console.error("Error:", err);
-        return res.status(500).json({ message: "Server error" });
-    }
-}
-
-const fetchAllPost = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const allPost = await Task.find().populate("userId").sort({ createdAt: 'desc' });
-
-        res.status(200).json({ load: allPost });
-    } catch (err) {
-        console.error("Error:", err);
-        return res.status(500).json({ message: "Server error" });
-    }
-}
 
 
 module.exports.signup = signup;
@@ -468,8 +391,3 @@ module.exports.login = login;
 module.exports.changePassword = changePassword;
 module.exports.editUser = editUser;
 module.exports.fetchUser = fetchUser;
-module.exports.deletePost = deletePost;
-module.exports.editPost = editPost;
-module.exports.createPost = createPost;
-module.exports.fetchMypost = fetchMypost;
-module.exports.fetchAllPost = fetchAllPost;
