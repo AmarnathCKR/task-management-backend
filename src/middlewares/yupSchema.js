@@ -17,16 +17,7 @@ const signupSchema = yup.object().shape({
         .test("isvalidEmail", "Enter a valid Email", (arg) =>
             /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(arg)
         ),
-    password: yup
-        .string()
-        .trim()
-        .min(8, "Too short password")
-        .max(16, "Too long password")
-        .test("isPerfectPasswrod", "Enter a strong password", (arg) =>
-            /((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W])(?!.*\s).{8,16})/.test(
-                arg
-            )
-        ),
+   
     image: yup
         .string()
 
@@ -89,19 +80,23 @@ const editPasswordSchema = yup.object().shape({
 
 });
 
-const taskSchema = yup.object().shape({
-    title: yup
-        .string()
-        .trim()
-        .required("Title can not be empty")
-        .min(100, "Minimum 100 characters")
-        .max(200, "Maximum 200 characters"),
-
-    taskData: yup.string().trim().required("invalid image"),
-});
+const columnSchema = yup.object().shape({
+    title: yup.string().required('Title is required'),
+    order: yup.number().required('Order is required').integer('Order must be an integer'),
+  });
+  
+  // Task Schema
+  const taskSchema = yup.object().shape({
+    title: yup.string().required('Title is required'),
+    description: yup.string().nullable(),
+    dueDate: yup.date().nullable(),
+    column: yup.string().required('Column is required').matches(/^[0-9a-fA-F]{24}$/, 'Column must be a valid ObjectId'),
+    order: yup.number().required('Order is required').integer('Order must be an integer'),
+  });
 
 module.exports.signupSchema = signupSchema;
 module.exports.loginSchema = loginSchema;
 module.exports.editSchema = editSchema;
 module.exports.editPasswordSchema = editPasswordSchema;
+module.exports.columnSchema = columnSchema;
 module.exports.taskSchema = taskSchema;

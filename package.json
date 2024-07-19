@@ -1,20 +1,20 @@
 {
-  "name": "user_manage_backend",
+  "name": "task-manage-backend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "nodemon src/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AmarnathCKR/user_manage_backend.git"
+    "url": "git+https://github.com/AmarnathCKR/task-manage-backend.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/AmarnathCKR/user_manage_backend/issues"
+    "url": "https://github.com/AmarnathCKR/task-manage-backend/issues"
   },
-  "homepage": "https://github.com/AmarnathCKR/user_manage_backend#readme",
+  "homepage": "https://github.com/AmarnathCKR/task-manage-backend#readme",
   "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",
