@@ -6,7 +6,8 @@ const cors = require("cors");
 
 
 const userManage = require("./routes/userManage");
-
+const taskRoutes = require("./routes/taskRoutes");
+const userAuth = require("./middlewares/userAuth");
 
 app.use(express.static(__dirname + "/public"));
 
@@ -19,6 +20,8 @@ app.use(
         credentials: true,
     })
 );
+
+app.use("/api/v1/data/",taskRoutes)
 
 app.use("/api/v1/user",userManage)
 

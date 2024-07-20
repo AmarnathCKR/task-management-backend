@@ -385,9 +385,28 @@ const changePassword = async (req, res) => {
 }
 
 
+const changeProfileImage = async (req, res) => {
+    try {
+
+        const { image } = req.body;
+
+        const { id } = req.params;
+
+        const user = await User.findByIdAndUpdate(id, { image })
+
+        if (user) {
+            res.json(image)
+        }
+
+    } catch (error) {
+        return res.status(500).json({ message: "Server error" });
+    }
+}
+
 
 module.exports.signup = signup;
 module.exports.login = login;
 module.exports.changePassword = changePassword;
 module.exports.editUser = editUser;
 module.exports.fetchUser = fetchUser;
+module.exports.changeProfileImage = changeProfileImage;

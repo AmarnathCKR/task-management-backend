@@ -10,7 +10,7 @@ const userAuth = async (req, res, next) => {
 
             return res.status(409).send({ data: "User access denied" });
         } else {
-
+            
             req.params.id = decoded._id;
             return next();
 
